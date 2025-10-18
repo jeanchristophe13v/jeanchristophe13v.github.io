@@ -2,14 +2,24 @@ name: Issue → Post
 
 on:
   issues:
-    types: [opened, edited, labeled, unlabeled, reopened, closed]
+    # 去掉 opened，避免“开 issue + 加标签”双触发
+    types: [labeled, edited, reopened, closed]
 
 permissions:
   contents: write
   issues: read
 
+# 以 issue 编号为并发分组，杜绝同一条 issue 的重复并发
+concurrency:
+  group: "issue-${{ github.event.issue.number }}"
+  cancel-in-progress: true
+
 jobs:
   write:
+    # 只有带 post 标签才执行；labeled 事件里进一步限定标签名
+    if: |
+      (github.event.action == 'labeled' && github.event.label.name == 'post') ||
+      contains(github.event.issue.labels.*.name, 'post')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,13 +30,8 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const core = require('@actions/core');
-            const issue = context.payload.issue;
+            const issue = context.payload.issue; // 直接用内置的 context/core
 
-            const hasPost = issue.labels.some(l => l.name.toLowerCase() === 'post');
-            if (!hasPost) { core.info('No `post` label; skip'); return; }
-
-            // 如果 Issue 被关闭，则把状态写到 front matter（也可以选择删除文件）
             const closed = (issue.state === 'closed');
 
             const slug = issue.title
@@ -36,8 +41,9 @@ jobs:
 
             const d = new Date(issue.created_at).toISOString().slice(0,10); // YYYY-mm-dd
             const fname = `${d}-${slug}-${issue.number}.md`;
-            const file = path.join('_collections', 'articles', fname);
 
+            const targetDir = path.join('_collections', 'articles');
+            fs.mkdirSync(targetDir, { recursive: true });
 
             const tags = issue.labels
               .map(l => l.name)
@@ -56,12 +62,13 @@ jobs:
               ''
             ].join('\n');
 
-            fs.mkdirSync('_posts', { recursive: true });
+            const file = path.join(targetDir, fname);
             fs.writeFileSync(file, fm + (issue.body || ''), 'utf8');
-            core.setOutput('file', file);
+            core.notice(`Wrote ${file}`);
 
       - name: Commit back
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(posts): sync issue #${{ github.event.issue.number }}"
           branch: master
+          file_pattern: _collections/articles/*.md
