@@ -2,14 +2,13 @@ name: Issue → Post
 
 on:
   issues:
-    # 去掉 opened，避免“开 issue + 加标签”双触发
     types: [labeled, edited, reopened, closed]
 
 permissions:
   contents: write
   issues: read
 
-# 以 issue 编号为并发分组，杜绝同一条 issue 的重复并发
+# 以 issue 编号为并发分组,如果同一 issue 有新操作,取消之前的运行
 concurrency:
   group: "issue-${{ github.event.issue.number }}"
   cancel-in-progress: true
@@ -30,7 +29,7 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const issue = context.payload.issue; // 直接用内置的 context/core
+            const issue = context.payload.issue;
 
             const closed = (issue.state === 'closed');
 
@@ -39,7 +38,7 @@ jobs:
               .replace(/[^a-z0-9]+/g, '-')
               .replace(/(^-|-$)/g, '');
 
-            const d = new Date(issue.created_at).toISOString().slice(0,10); // YYYY-mm-dd
+            const d = new Date(issue.created_at).toISOString().slice(0,10);
             const fname = `${d}-${slug}-${issue.number}.md`;
 
             const targetDir = path.join('_collections', 'articles');
