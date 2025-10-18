@@ -3,6 +3,9 @@ name: Build & Deploy Jekyll (Pages)
 on:
   push:
     branches: [ master ]
+  workflow_run:
+    workflows: ["Issue → Post"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,9 +19,17 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository (push/manual)
+        if: github.event_name != 'workflow_run'
+        uses: actions/checkout@v4
+      - name: Checkout repository (from Issue → Post)
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/configure-pages@v5
       - uses: actions/jekyll-build-pages@v1   # 官方 Jekyll 构建 Action
       - uses: actions/upload-pages-artifact@v3
