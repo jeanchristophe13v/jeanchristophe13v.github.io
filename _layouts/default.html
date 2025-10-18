@@ -9,9 +9,11 @@
       {{ content }}
     </div>
 
+    {% unless page.layout == 'post' or page.layout == 'article' or page.layout == 'letter' or page.layout == 'speech' or page.layout == 'tutorial' %}
     <footer class="blog-footer mt-5">
       {% include footer.html %}
     </footer>
+    {% endunless %}
     <p class="love">Made with <i class="fa fa-heart"></i> by <a href="https://alvaroduran.com">Álvaro</a></p>
 
     <!-- Javascript -->
