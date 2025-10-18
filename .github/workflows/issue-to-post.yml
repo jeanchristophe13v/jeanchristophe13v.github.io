@@ -90,12 +90,25 @@ jobs:
               .replace(/^_No response_\s*$/gim, '')
               .trim();
 
-            // 定义优雅的配色方案
-            const colorPalette = ['#705050', '#675070', '#505470', '#506e70', '#507061', '#705b50'];
+            // 定义优雅的配色方案（渐变）
+            const colorGradients = {
+              '#705050': 'linear-gradient(135deg, #705050 0%, #806060 100%)',
+              '#675070': 'linear-gradient(135deg, #675070 0%, #776080 100%)',
+              '#505470': 'linear-gradient(135deg, #505470 0%, #606480 100%)',
+              '#506e70': 'linear-gradient(135deg, #506e70 0%, #607e80 100%)',
+              '#507061': 'linear-gradient(135deg, #507061 0%, #608071 100%)',
+              '#705b50': 'linear-gradient(135deg, #705b50 0%, #806b60 100%)'
+            };
+
+            const colorKeys = Object.keys(colorGradients);
 
             // 随机选择一个颜色
-            function getRandomColor() {
-              return colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            function getRandomGradient() {
+              const randomKey = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+              return {
+                key: randomKey,
+                gradient: colorGradients[randomKey]
+              };
             }
 
             // 处理封面图逻辑
@@ -107,7 +120,8 @@ jobs:
               finalCoverImage = coverImage.trim();
             } else if (coverType === '使用纯色背景（随机选择优雅配色）') {
               // 用户选择使用纯色背景
-              backgroundColor = getRandomColor();
+              const selectedColor = getRandomGradient();
+              backgroundColor = selectedColor.gradient;
               finalCoverImage = ''; // 不使用封面图
             } else {
               // 兼容旧逻辑：如果没有选择或选择其他选项，仍使用正文第一张图片
