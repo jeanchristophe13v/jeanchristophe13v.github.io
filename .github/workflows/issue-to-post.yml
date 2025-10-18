@@ -2,7 +2,8 @@ name: Issue → Post
 
 on:
   issues:
-    types: [opened, labeled, edited, reopened, closed]
+    # 仅在需要时触发，避免 opened 与 labeled 双触发造成并发取消提示
+    types: [labeled, edited, reopened, closed]
   workflow_dispatch:
 
 permissions:
@@ -73,6 +74,7 @@ jobs:
             // 移除模板标题和默认占位符
             cleanBody = cleanBody
               .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/gim, '')
+              .replace(/^\s*(摘要|博文正文|内容|Content|Post)\s*[:：]?\s*$/gim, '')
               .replace(/^_No response_\s*$/gm, '')
               .trim();
 
@@ -81,7 +83,7 @@ jobs:
             const imageMatch = cleanBody.match(imageRegex);
             const firstImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
 
-            // 生成描述（取正文前150个字符，去除 Markdown 标记和图片）
+            // 生成描述（取正文前150个字符，去除 Markdown/占位词/图片）
             let description = '';
             const descriptionSource = summary || cleanBody;
             if (descriptionSource) {
@@ -90,6 +92,7 @@ jobs:
                 .replace(/<img[^>]*>/g, '') // 秮除 HTML 图片
                 .replace(/#{1,6}\s/g, '') // 移除标题标记
                 .replace(/[*_~`]/g, '') // 移除格式化标记
+                .replace(/\b(摘要|博文正文|内容|Content|Post)\b[:：]?/gi, '') // 移除中文/英文占位词
                 .replace(/\n+/g, ' ') // 将多个换行替换为空格
                 .trim();
               description = sanitizedDescription.slice(0, 150);
@@ -111,6 +114,18 @@ jobs:
             ].filter(Boolean).join('\n');
 
             const file = path.join(targetDir, fname);
+            // 删除同一 issue 产生的旧文件（例如改标题导致文件名变化）
+            if (fs.existsSync(targetDir)) {
+              const files = fs.readdirSync(targetDir);
+              const pattern = new RegExp(`-${issue.number}\\.md$`);
+              files.forEach(f => {
+                const fp = path.join(targetDir, f);
+                if (pattern.test(f) && fp !== file && fs.existsSync(fp)) {
+                  fs.unlinkSync(fp);
+                  core.info(`Removed previous file for same issue: ${fp}`);
+                }
+              });
+            }
             core.info(`Writing file: ${file}`);
             // 确保 front matter 和 body 之间有空行
             const content = fm + '\n\n' + cleanBody;
