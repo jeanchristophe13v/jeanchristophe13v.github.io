@@ -3,11 +3,11 @@
     {% assign published_articles = site.articles | where: "published", true | reverse %}
     {% assign articles = published_articles | slice: 0, 6 %}
     {% for item in articles %}
-      <div class="card p-3 border-0 zoom">
+      <div class="card p-3 border-0 zoom {% if item.background_color %}color-bg-{{ item.background_color | replace: '#', '' }}{% endif %}">
         {% if item.image %}
           <img src="{{ item.image }}" class="card-img-top" alt="Image of {{ item.title }}">
         {% endif %}
-        <div class="card-body">
+        <div class="card-body {% if item.background_color %}color-text-{{ item.background_color | replace: '#', '' }}{% endif %}">
           <a href="{{ item.url | prepend: site.baseurl }}" class="text-reset">
             <h5 class="card-title">{{ item.title }}</h5>
           </a>

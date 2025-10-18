@@ -193,3 +193,106 @@ article pre {
   border-radius: 5px;
   overflow-x: auto;
 }
+
+/* 纯色背景卡片样式 */
+.color-bg-705050 {
+  background: linear-gradient(135deg, #705050 0%, #806060 100%);
+  color: #ffffff;
+}
+
+.color-text-705050 {
+  color: #ffffff;
+}
+
+.color-text-705050 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-705050 a {
+  color: #ffffff;
+}
+
+.color-bg-675070 {
+  background: linear-gradient(135deg, #675070 0%, #776080 100%);
+  color: #ffffff;
+}
+
+.color-text-675070 {
+  color: #ffffff;
+}
+
+.color-text-675070 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-675070 a {
+  color: #ffffff;
+}
+
+.color-bg-505470 {
+  background: linear-gradient(135deg, #505470 0%, #606480 100%);
+  color: #ffffff;
+}
+
+.color-text-505470 {
+  color: #ffffff;
+}
+
+.color-text-505470 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-505470 a {
+  color: #ffffff;
+}
+
+.color-bg-506e70 {
+  background: linear-gradient(135deg, #506e70 0%, #607e80 100%);
+  color: #ffffff;
+}
+
+.color-text-506e70 {
+  color: #ffffff;
+}
+
+.color-text-506e70 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-506e70 a {
+  color: #ffffff;
+}
+
+.color-bg-507061 {
+  background: linear-gradient(135deg, #507061 0%, #608071 100%);
+  color: #ffffff;
+}
+
+.color-text-507061 {
+  color: #ffffff;
+}
+
+.color-text-507061 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-507061 a {
+  color: #ffffff;
+}
+
+.color-bg-705b50 {
+  background: linear-gradient(135deg, #705b50 0%, #806b60 100%);
+  color: #ffffff;
+}
+
+.color-text-705b50 {
+  color: #ffffff;
+}
+
+.color-text-705b50 .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.color-text-705b50 a {
+  color: #ffffff;
+}

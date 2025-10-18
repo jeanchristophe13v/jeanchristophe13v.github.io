@@ -6,13 +6,34 @@ body:
     attributes:
       value: |
         ## 📝 撰写博文
-        
+
         请在下方直接编写您的博文内容。支持 Markdown 格式和图片。
-        
+
         **提示**：
         - Issue 标题会成为博文标题
-        - 第一张图片会作为封面图
-        - 摘要可填写在下一个输入框，若留空会自动取正文前 150 字符
+        - 可以通过下方选项自定义封面图
+        - 摘要可填写在对应输入框，若留空会自动取正文前 150 字符
+
+  - type: dropdown
+    id: cover_type
+    attributes:
+      label: 封面图设置
+      description: 选择是否使用封面图
+      options:
+        - 使用自定义封面图
+        - 使用纯色背景（随机选择优雅配色）
+    validations:
+      required: true
+
+  - type: input
+    id: cover_image
+    attributes:
+      label: 封面图 URL
+      description: 如果选择"使用自定义封面图"，请在此输入图片地址（支持 GitHub 文件上传或外部图片链接）
+      placeholder: |
+        https://example.com/image.jpg
+    validations:
+      required: false
   
   - type: textarea
     id: summary

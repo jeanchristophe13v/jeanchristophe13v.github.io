@@ -65,6 +65,8 @@ jobs:
             // 解析 issue form 字段
             let summary = '';
             let cleanBody = '';
+            let coverType = '';
+            let coverImage = '';
 
             // 解析 issue form 字段（兼容 textarea）
             if (issue.body) {
@@ -73,6 +75,12 @@ jobs:
 
               const bodyMatch = issue.body.match(/###\s*博文正文\s*\n+([\s\S]*)/i);
               if (bodyMatch) cleanBody = bodyMatch[1];
+
+              const coverTypeMatch = issue.body.match(/###\s*封面图设置\s*\n+([\s\S]*?)(?=\n###\s*[^\n]+\n|$)/i);
+              if (coverTypeMatch) coverType = coverTypeMatch[1].replace(/_No response_\s*/gi, '').trim();
+
+              const coverImageMatch = issue.body.match(/###\s*封面图 URL\s*\n+([\s\S]*?)(?=\n###\s*[^\n]+\n|$)/i);
+              if (coverImageMatch) coverImage = coverImageMatch[1].replace(/_No response_\s*/gi, '').trim();
             }
 
             if (!cleanBody) cleanBody = issue.body || '';
@@ -82,10 +90,31 @@ jobs:
               .replace(/^_No response_\s*$/gim, '')
               .trim();
 
-            // 提取正文中的第一张图片作为头图
-            const imageRegex = /!\[.*?\]\((.*?)\)|<img[^>]+src=["']([^"']+)["']/;
-            const imageMatch = cleanBody.match(imageRegex);
-            const firstImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
+            // 定义优雅的配色方案
+            const colorPalette = ['#705050', '#675070', '#505470', '#506e70', '#507061', '#705b50'];
+
+            // 随机选择一个颜色
+            function getRandomColor() {
+              return colorPalette[Math.floor(Math.random() * colorPalette.length)];
+            }
+
+            // 处理封面图逻辑
+            let finalCoverImage = '';
+            let backgroundColor = '';
+
+            if (coverType === '使用自定义封面图' && coverImage) {
+              // 用户选择使用自定义封面图
+              finalCoverImage = coverImage.trim();
+            } else if (coverType === '使用纯色背景（随机选择优雅配色）') {
+              // 用户选择使用纯色背景
+              backgroundColor = getRandomColor();
+              finalCoverImage = ''; // 不使用封面图
+            } else {
+              // 兼容旧逻辑：如果没有选择或选择其他选项，仍使用正文第一张图片
+              const imageRegex = /!\[.*?\]\((.*?)\)|<img[^>]+src=["']([^"']+)["']/;
+              const imageMatch = cleanBody.match(imageRegex);
+              finalCoverImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
+            }
 
             // 生成描述（取正文前150个字符，去除 Markdown/占位词/图片）
             let description = '';
@@ -108,7 +137,8 @@ jobs:
               'layout: post',
               `title: "${issue.title.replace(/"/g, '\\"')}"`,
               `description: "${description.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`,
-              firstImage ? `image: "${firstImage}"` : '',
+              finalCoverImage ? `image: "${finalCoverImage}"` : '',
+              backgroundColor ? `background_color: "${backgroundColor}"` : '',
               `date: ${issue.created_at}`,
               `updated: ${issue.updated_at}`,
               `issue: ${issue.number}`,
