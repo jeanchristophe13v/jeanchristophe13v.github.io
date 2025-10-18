@@ -83,18 +83,59 @@ jobs:
               `issue: ${issue.number}`,
               `published: ${!closed}`,
               `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
-              '---',
-              ''
+              '---'
             ].filter(line => line !== '').join('\n');
 
             const file = path.join(targetDir, fname);
             core.info(`Writing file: ${file}`);
-            fs.writeFileSync(file, fm + (issue.body || ''), 'utf8');
+            // 确保 front matter 和 body 之间有空行
+            const content = fm + '\n\n' + (issue.body || '');
+            fs.writeFileSync(file, content, 'utf8');
             core.notice(`✅ Successfully wrote ${file}`);
 
       - name: Commit back
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(posts): sync issue #${{ github.event.issue.number }}"
+          branch: master
+          file_pattern: _collections/_articles/*.md
+
+  delete:
+    # 当 issue 被删除时执行（删除 issue 不会带标签，所以单独处理）
+    if: github.event.action == 'deleted'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete post file for deleted issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const issue = context.payload.issue;
+
+            core.info(`Deleting post for issue #${issue.number}: ${issue.title}`);
+
+            const targetDir = path.join('_collections', '_articles');
+            
+            // 查找所有匹配该 issue 编号的文件
+            if (fs.existsSync(targetDir)) {
+              const files = fs.readdirSync(targetDir);
+              const pattern = new RegExp(`-${issue.number}\\.md$`);
+              
+              files.forEach(file => {
+                if (pattern.test(file)) {
+                  const filePath = path.join(targetDir, file);
+                  fs.unlinkSync(filePath);
+                  core.notice(`🗑️ Deleted ${filePath}`);
+                }
+              });
+            }
+
+      - name: Commit deletion
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(posts): delete post for issue #${{ github.event.issue.number }}"
           branch: master
           file_pattern: _collections/_articles/*.md
