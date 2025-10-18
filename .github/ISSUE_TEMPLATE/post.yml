@@ -1,3 +1,10 @@
 name: Blog
-description: 在这里写内容，提交即发布
+description: 发布文章
 labels: ["post"]
+body:
+  - type: textarea
+    id: content
+    attributes:
+      label: 内容
+    validations:
+      required: true
