@@ -2,7 +2,8 @@ name: Issue → Post
 
 on:
   issues:
-    types: [labeled, edited, reopened, closed]
+    types: [opened, labeled, edited, reopened, closed]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -61,7 +62,7 @@ jobs:
             cleanBody = cleanBody
               .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/im, '') // 移除"### 内容"等标题
               .replace(/^###?\s*博文正文\s*\n*/im, '')
-              .replace(/^_No response_\s*$/gm, '') // 移除 GitHub 的默认响应
+              .replace(/^_No response_\s*$/gm, '') // 秼除 GitHub 的默认响应
               .trim();
 
             // 提取正文中的第一张图片作为头图
@@ -74,7 +75,7 @@ jobs:
             if (cleanBody) {
               description = cleanBody
                 .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
-                .replace(/<img[^>]*>/g, '') // 移除 HTML 图片
+                .replace(/<img[^>]*>/g, '') // 秮除 HTML 图片
                 .replace(/#{1,6}\s/g, '') // 移除标题标记
                 .replace(/[*_~`]/g, '') // 移除格式化标记
                 .replace(/\n+/g, ' ') // 将多个换行替换为空格
@@ -95,7 +96,7 @@ jobs:
               `published: ${!closed}`,
               `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
               '---'
-            ].filter(line => line !== '').join('\n');
+            ].filter(Boolean).join('\n');
 
             const file = path.join(targetDir, fname);
             core.info(`Writing file: ${file}`);

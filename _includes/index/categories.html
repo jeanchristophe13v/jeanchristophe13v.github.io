@@ -11,19 +11,30 @@
     <div class="card mb-3 border-0">
       <div class="row no-gutters mb-2">
         <div class="col-md-4">
-          <img src="{{ collection.docs.last.image }}" class="card-img h-75 w-75 m-4 rounded-circle" alt="Image of {{ collection.docs.last.title }}">
-        </div>
-          <div class="col-md-8">
-            <div class="card-body">
-              <h5 class="card-title">{{ collection.label | capitalize }}</h5>
-              <p class="card-text">
-                <a href="{{ collection.docs.last.url | prepend: site.baseurl }}" class="text-reset">
-                  {{ collection.docs.last.title }}
-                </a>
-              </p>
+          {% assign last_doc = collection.docs.last %}
+          {% if last_doc and last_doc.image %}
+            <img src="{{ last_doc.image }}" class="card-img h-75 w-75 m-4 rounded-circle" alt="Image of {{ last_doc.title }}">
+          {% else %}
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center h-75 w-75 m-4 rounded-circle">
+              <span class="text-center">{{ collection.label | capitalize }}</span>
             </div>
+          {% endif %}
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">{{ collection.label | capitalize }}</h5>
+            <p class="card-text">
+              {% if last_doc %}
+                <a href="{{ last_doc.url | prepend: site.baseurl }}" class="text-reset">
+                  {{ last_doc.title }}
+                </a>
+              {% else %}
+                <span class="text-muted">No posts yet</span>
+              {% endif %}
+            </p>
           </div>
         </div>
       </div>
-    {% endif %}
-  {% endfor %}
+    </div>
+  {% endif %}
+{% endfor %}
