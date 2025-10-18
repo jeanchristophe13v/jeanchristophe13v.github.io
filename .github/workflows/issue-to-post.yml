@@ -46,7 +46,7 @@ jobs:
             const d = new Date(issue.created_at).toISOString().slice(0,10);
             const fname = `${d}-${slug}-${issue.number}.md`;
 
-            const targetDir = path.join('_collections', 'articles');
+            const targetDir = path.join('_collections', '_articles');
             core.info(`Creating directory: ${targetDir}`);
             fs.mkdirSync(targetDir, { recursive: true });
 
@@ -54,10 +54,30 @@ jobs:
               .map(l => l.name)
               .filter(n => n.toLowerCase() !== 'post');
 
+            // 提取正文中的第一张图片作为头图
+            const imageRegex = /!\[.*?\]\((.*?)\)|<img[^>]+src=["']([^"']+)["']/;
+            const imageMatch = issue.body ? issue.body.match(imageRegex) : null;
+            const firstImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
+
+            // 生成描述（取正文前150个字符，去除 Markdown 标记和图片）
+            let description = '';
+            if (issue.body) {
+              description = issue.body
+                .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
+                .replace(/<img[^>]*>/g, '') // 移除 HTML 图片
+                .replace(/#{1,6}\s/g, '') // 移除标题标记
+                .replace(/[*_~`]/g, '') // 移除格式化标记
+                .trim()
+                .slice(0, 150);
+              if (issue.body.length > 150) description += '...';
+            }
+
             const fm = [
               '---',
               'layout: post',
               `title: "${issue.title.replace(/"/g, '\\"')}"`,
+              `description: "${description.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`,
+              firstImage ? `image: "${firstImage}"` : '',
               `date: ${issue.created_at}`,
               `updated: ${issue.updated_at}`,
               `issue: ${issue.number}`,
@@ -65,7 +85,7 @@ jobs:
               `tags: [${tags.map(t => `"${t}"`).join(', ')}]`,
               '---',
               ''
-            ].join('\n');
+            ].filter(line => line !== '').join('\n');
 
             const file = path.join(targetDir, fname);
             core.info(`Writing file: ${file}`);
@@ -77,4 +97,4 @@ jobs:
         with:
           commit_message: "chore(posts): sync issue #${{ github.event.issue.number }}"
           branch: master
-          file_pattern: _collections/articles/*.md
+          file_pattern: _collections/_articles/*.md
