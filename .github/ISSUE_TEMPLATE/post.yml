@@ -24,6 +24,15 @@ body:
     validations:
       required: false
 
+  - type: input
+    id: cover
+    attributes:
+      label: 封面图
+      description: 填写封面图 URL（可选）。留空则使用默认底色，不再自动抓取正文图片。
+      placeholder: https://example.com/cover.jpg
+    validations:
+      required: false
+
   - type: textarea
     id: content
     attributes:
