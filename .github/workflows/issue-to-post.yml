@@ -62,20 +62,24 @@ jobs:
 
             const body = issue.body || '';
 
-            // 提取摘要（位于“### 摘要”与“### 博文正文”之间）
-            const summaryMatch = body.match(/###\s*摘要\s*(?:\r?\n)+([\s\S]*?)(?=(?:\r?\n)###\s*(?:博文正文|内容|Content|Post)\b|\s*$)/i);
-            let summary = summaryMatch ? summaryMatch[1].trim() : '';
-            summary = summary.replace(/_No response_\s*/gi, '').trim();
+            // 解析 issue form 字段
+            let summary = '';
+            let cleanBody = '';
 
-            // 提取正文内容（识别多语言标题，若不存在则回退到完整 body）
-            const bodyMatch = body.match(/###\s*(?:博文正文|内容|Content|Post)\s*(?:\r?\n)+([\s\S]*)/i);
-            let cleanBody = bodyMatch ? bodyMatch[1] : body;
+            // 解析 issue form 字段（兼容 textarea）
+            if (issue.body) {
+              const summaryMatch = issue.body.match(/###\s*摘要\s*\n+([\s\S]*?)(?=\n###\s*[^\n]+\n|$)/i);
+              if (summaryMatch) summary = summaryMatch[1].replace(/_No response_\s*/gi, '').trim();
 
-            // 移除模板标题和默认占位符
+              const bodyMatch = issue.body.match(/###\s*博文正文\s*\n+([\s\S]*)/i);
+              if (bodyMatch) cleanBody = bodyMatch[1];
+            }
+
+            if (!cleanBody) cleanBody = issue.body || '';
+
             cleanBody = cleanBody
-              .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/gim, '')
-              .replace(/^\s*(摘要|博文正文|内容|Content|Post)\s*[:：]?\s*$/gim, '')
-              .replace(/^_No response_\s*$/gm, '')
+              .replace(/^###?\s*(摘要|博文正文|内容|Content|Post)\s*[:：]?\s*$/gim, '')
+              .replace(/^_No response_\s*$/gim, '')
               .trim();
 
             // 提取正文中的第一张图片作为头图
