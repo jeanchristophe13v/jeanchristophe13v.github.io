@@ -54,22 +54,33 @@ jobs:
               .map(l => l.name)
               .filter(n => n.toLowerCase() !== 'post');
 
+            // 清理 issue body：移除模板生成的标题和多余内容
+            let cleanBody = issue.body || '';
+            
+            // 移除常见的模板标题（支持多种格式）
+            cleanBody = cleanBody
+              .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/im, '') // 移除"### 内容"等标题
+              .replace(/^###?\s*博文正文\s*\n*/im, '')
+              .replace(/^_No response_\s*$/gm, '') // 移除 GitHub 的默认响应
+              .trim();
+
             // 提取正文中的第一张图片作为头图
             const imageRegex = /!\[.*?\]\((.*?)\)|<img[^>]+src=["']([^"']+)["']/;
-            const imageMatch = issue.body ? issue.body.match(imageRegex) : null;
+            const imageMatch = cleanBody.match(imageRegex);
             const firstImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
 
             // 生成描述（取正文前150个字符，去除 Markdown 标记和图片）
             let description = '';
-            if (issue.body) {
-              description = issue.body
+            if (cleanBody) {
+              description = cleanBody
                 .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
                 .replace(/<img[^>]*>/g, '') // 移除 HTML 图片
                 .replace(/#{1,6}\s/g, '') // 移除标题标记
                 .replace(/[*_~`]/g, '') // 移除格式化标记
+                .replace(/\n+/g, ' ') // 将多个换行替换为空格
                 .trim()
                 .slice(0, 150);
-              if (issue.body.length > 150) description += '...';
+              if (cleanBody.length > 150) description += '...';
             }
 
             const fm = [
@@ -89,7 +100,7 @@ jobs:
             const file = path.join(targetDir, fname);
             core.info(`Writing file: ${file}`);
             // 确保 front matter 和 body 之间有空行
-            const content = fm + '\n\n' + (issue.body || '');
+            const content = fm + '\n\n' + cleanBody;
             fs.writeFileSync(file, content, 'utf8');
             core.notice(`✅ Successfully wrote ${file}`);
 

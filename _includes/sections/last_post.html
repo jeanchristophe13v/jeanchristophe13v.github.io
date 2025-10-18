@@ -11,7 +11,13 @@
         </div>
       </div>
       <div class="col-md-8">
-        <img src="{{include.last_post.image}}" class="w-100" alt="image of {{ include.last_post.title }}">
+        {% if include.last_post.image %}
+          <img src="{{include.last_post.image}}" class="w-100" alt="image of {{ include.last_post.title }}">
+        {% else %}
+          <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 300px;">
+            <h3>{{ include.last_post.title }}</h3>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

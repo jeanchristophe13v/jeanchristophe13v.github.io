@@ -2,9 +2,31 @@ name: Blog
 description: 发布文章
 labels: ["post"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📝 撰写博文
+        
+        请在下方直接编写您的博文内容。支持 Markdown 格式和图片。
+        
+        **提示**：
+        - Issue 标题会成为博文标题
+        - 第一张图片会作为封面图
+        - 前 150 字符会作为摘要
+  
   - type: textarea
     id: content
     attributes:
-      label: 内容
+      label: 博文正文
+      description: 在此处编写您的博文内容
+      placeholder: |
+        # 一级标题
+        
+        这是一段正常的文字...
+        
+        ## 二级标题
+        
+        - 列表项 1
+        - 列表项 2
     validations:
       required: true

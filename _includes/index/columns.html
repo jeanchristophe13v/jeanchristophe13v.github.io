@@ -4,7 +4,13 @@
     {% assign articles = published_articles | slice: 0, 6 %}
     {% for item in articles %}
       <div class="card p-3 border-0 zoom">
-        <img src="{{ item.image }}" class="card-img-top" alt="Image of {{ item.title }}">
+        {% if item.image %}
+          <img src="{{ item.image }}" class="card-img-top" alt="Image of {{ item.title }}">
+        {% else %}
+          <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+            <h4>{{ item.title }}</h4>
+          </div>
+        {% endif %}
         <div class="card-body">
           <a href="{{ item.url | prepend: site.baseurl }}" class="text-reset">
             <h5 class="card-title">{{ item.title }}</h5>
