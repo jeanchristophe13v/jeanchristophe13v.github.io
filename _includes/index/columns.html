@@ -11,7 +11,10 @@
           <a href="{{ item.url | prepend: site.baseurl }}" class="text-reset">
             <h5 class="card-title">{{ item.title }}</h5>
           </a>
-          <p class="card-text">{{ item.description }}</p>
+          {% assign summary = item.description | default: item.excerpt %}
+          {% if summary %}
+            <p class="card-text">{{ summary | strip_html | truncate: 140 }}</p>
+          {% endif %}
           <p class="card-text"><small class="text-muted">{{ item.date | date_to_long_string }}</small></p>
         </div>
       </div>

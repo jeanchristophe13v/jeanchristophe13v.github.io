@@ -12,8 +12,18 @@ body:
         **提示**：
         - Issue 标题会成为博文标题
         - 第一张图片会作为封面图
-        - 前 150 字符会作为摘要
+        - 摘要可填写在下一个输入框，若留空会自动取正文前 150 字符
   
+  - type: textarea
+    id: summary
+    attributes:
+      label: 摘要
+      description: 用 1-2 句话概括文章，会直接展示在首页卡片上（可留空）
+      placeholder: |
+        用一句话告诉读者这篇文章的重点...
+    validations:
+      required: false
+
   - type: textarea
     id: content
     attributes:

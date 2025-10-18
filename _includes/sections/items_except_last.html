@@ -4,24 +4,23 @@
   <div class="container border-bottom">
       <div class="card my-3 border-0">
         <div class="row no-gutters">
-          <div class="col-md-8">
+          <div class="{% if item.image %}col-md-8{% else %}col-md-12{% endif %}">
             <div class="card-body">
               <a class="text-reset" href="{{ item.url | prepend: site.baseurl}}">
                 <h5 class="card-title">{{ item.title }}</h5>
               </a>
-              <p class="card-text">{{ item.description }}</p>
+              {% assign summary = item.description | default: item.excerpt %}
+              {% if summary %}
+                <p class="card-text">{{ summary | strip_html | truncate: 160 }}</p>
+              {% endif %}
               <p class="card-text"><small class="text-muted">{{ item.date | date_to_long_string }}</small></p>
             </div>
           </div>
-          <div class="col-md-4">
-            {% if item.image %}
-              <img src="{{item.image}}" class="card-img" alt="...">
-            {% else %}
-              <div class="bg-secondary text-white d-flex align-items-center justify-content-center card-img" style="height: 200px;">
-                <span>{{ item.title }}</span>
-              </div>
-            {% endif %}
-          </div>
+          {% if item.image %}
+            <div class="col-md-4">
+              <img src="{{item.image}}" class="card-img" alt="Image of {{ item.title }}">
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

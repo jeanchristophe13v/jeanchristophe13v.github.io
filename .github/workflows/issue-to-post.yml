@@ -18,8 +18,10 @@ jobs:
   write:
     # 只有带 post 标签才执行；labeled 事件里进一步限定标签名
     if: |
-      (github.event.action == 'labeled' && github.event.label.name == 'post') ||
-      contains(github.event.issue.labels.*.name, 'post')
+      github.event.action != 'closed' && (
+        (github.event.action == 'labeled' && github.event.label.name == 'post') ||
+        contains(github.event.issue.labels.*.name, 'post')
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,14 +57,21 @@ jobs:
               .map(l => l.name)
               .filter(n => n.toLowerCase() !== 'post');
 
-            // 清理 issue body：移除模板生成的标题和多余内容
-            let cleanBody = issue.body || '';
-            
-            // 移除常见的模板标题（支持多种格式）
+            const body = issue.body || '';
+
+            // 提取摘要（位于“### 摘要”与“### 博文正文”之间）
+            const summaryMatch = body.match(/###\s*摘要\s*(?:\r?\n)+([\s\S]*?)(?=(?:\r?\n)###\s*(?:博文正文|内容|Content|Post)\b|\s*$)/i);
+            let summary = summaryMatch ? summaryMatch[1].trim() : '';
+            summary = summary.replace(/_No response_\s*/gi, '').trim();
+
+            // 提取正文内容（识别多语言标题，若不存在则回退到完整 body）
+            const bodyMatch = body.match(/###\s*(?:博文正文|内容|Content|Post)\s*(?:\r?\n)+([\s\S]*)/i);
+            let cleanBody = bodyMatch ? bodyMatch[1] : body;
+
+            // 移除模板标题和默认占位符
             cleanBody = cleanBody
-              .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/im, '') // 移除"### 内容"等标题
-              .replace(/^###?\s*博文正文\s*\n*/im, '')
-              .replace(/^_No response_\s*$/gm, '') // 秼除 GitHub 的默认响应
+              .replace(/^###?\s*(内容|博文正文|Content|Post)\s*\n*/gim, '')
+              .replace(/^_No response_\s*$/gm, '')
               .trim();
 
             // 提取正文中的第一张图片作为头图
@@ -72,16 +81,17 @@ jobs:
 
             // 生成描述（取正文前150个字符，去除 Markdown 标记和图片）
             let description = '';
-            if (cleanBody) {
-              description = cleanBody
+            const descriptionSource = summary || cleanBody;
+            if (descriptionSource) {
+              const sanitizedDescription = descriptionSource
                 .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
                 .replace(/<img[^>]*>/g, '') // 秮除 HTML 图片
                 .replace(/#{1,6}\s/g, '') // 移除标题标记
                 .replace(/[*_~`]/g, '') // 移除格式化标记
                 .replace(/\n+/g, ' ') // 将多个换行替换为空格
-                .trim()
-                .slice(0, 150);
-              if (cleanBody.length > 150) description += '...';
+                .trim();
+              description = sanitizedDescription.slice(0, 150);
+              if (sanitizedDescription.length > 150) description += '...';
             }
 
             const fm = [
@@ -114,7 +124,7 @@ jobs:
 
   delete:
     # 当 issue 被删除时执行（删除 issue 不会带标签，所以单独处理）
-    if: github.event.action == 'deleted'
+    if: github.event.action == 'closed' || github.event.action == 'deleted'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
