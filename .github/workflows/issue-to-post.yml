@@ -31,6 +31,11 @@ jobs:
             const path = require('path');
             const issue = context.payload.issue;
 
+            // 输出调试信息
+            core.info(`Processing issue #${issue.number}: ${issue.title}`);
+            core.info(`Issue state: ${issue.state}`);
+            core.info(`Issue labels: ${issue.labels.map(l => l.name).join(', ')}`);
+
             const closed = (issue.state === 'closed');
 
             const slug = issue.title
@@ -42,6 +47,7 @@ jobs:
             const fname = `${d}-${slug}-${issue.number}.md`;
 
             const targetDir = path.join('_collections', 'articles');
+            core.info(`Creating directory: ${targetDir}`);
             fs.mkdirSync(targetDir, { recursive: true });
 
             const tags = issue.labels
@@ -62,8 +68,9 @@ jobs:
             ].join('\n');
 
             const file = path.join(targetDir, fname);
+            core.info(`Writing file: ${file}`);
             fs.writeFileSync(file, fm + (issue.body || ''), 'utf8');
-            core.notice(`Wrote ${file}`);
+            core.notice(`✅ Successfully wrote ${file}`);
 
       - name: Commit back
         uses: stefanzweifel/git-auto-commit-action@v5
