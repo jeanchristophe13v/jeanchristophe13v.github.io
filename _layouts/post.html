@@ -4,16 +4,12 @@ layout: default
 {% if page.image %}
 <div class="jumbotron" style="background-image: url({{ page.image }}); background-size: cover; background-position: center;">
   <h1 class="col-md-5 mx-auto mb-5 d-flex justify-content-center text-light">{{ page.title }}</h1>
-  {% if page.description %}
-    <p class="lead text-light text-center">{{ page.description }}</p>
-  {% endif %}
+  <p class="lead text-light">{{ page.description }}</p>
 </div>
 {% else %}
-<div class="jumbotron jumbotron-placeholder text-center">
-  <h1 class="col-md-8 mx-auto mb-3 d-flex justify-content-center">{{ page.title }}</h1>
-  {% if page.description %}
-    <p class="lead text-muted text-center">{{ page.description }}</p>
-  {% endif %}
+<div class="jumbotron bg-secondary">
+  <h1 class="col-md-8 mx-auto mb-3 d-flex justify-content-center text-light">{{ page.title }}</h1>
+  <p class="lead text-light text-center">{{ page.description }}</p>
 </div>
 {% endif %}
 <article class="container">

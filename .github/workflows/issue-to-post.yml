@@ -60,28 +60,32 @@ jobs:
               .map(l => l.name)
               .filter(n => n.toLowerCase() !== 'post');
 
-            const extractField = (label) => {
-              if (!issue.body) return '';
-              const pattern = new RegExp(`###\\s*${label}\\s*(?:\\r?\\n)+([\\s\\S]*?)(?=(?:\\r?\\n)###\\s*[^\\n]+\\n|$)`, 'i');
-              const match = issue.body.match(pattern);
-              if (!match) return '';
-              return match[1].replace(/_No response_\s*/gi, '').trim();
-            };
+            const body = issue.body || '';
 
-            const summary = extractField('摘要');
-            let cleanBody = extractField('博文正文');
-            let coverImage = extractField('封面图');
-            if (coverImage) {
-              const firstToken = coverImage.split(/\s+/).find(Boolean);
-              coverImage = firstToken || '';
+            // 解析 issue form 字段
+            let summary = '';
+            let cleanBody = '';
+
+            // 解析 issue form 字段（兼容 textarea）
+            if (issue.body) {
+              const summaryMatch = issue.body.match(/###\s*摘要\s*\n+([\s\S]*?)(?=\n###\s*[^\n]+\n|$)/i);
+              if (summaryMatch) summary = summaryMatch[1].replace(/_No response_\s*/gi, '').trim();
+
+              const bodyMatch = issue.body.match(/###\s*博文正文\s*\n+([\s\S]*)/i);
+              if (bodyMatch) cleanBody = bodyMatch[1];
             }
 
             if (!cleanBody) cleanBody = issue.body || '';
 
             cleanBody = cleanBody
-              .replace(/^###?\s*(摘要|博文正文|内容|Content|Post|封面图)\s*[:：]?\s*$/gim, '')
+              .replace(/^###?\s*(摘要|博文正文|内容|Content|Post)\s*[:：]?\s*$/gim, '')
               .replace(/^_No response_\s*$/gim, '')
               .trim();
+
+            // 提取正文中的第一张图片作为头图
+            const imageRegex = /!\[.*?\]\((.*?)\)|<img[^>]+src=["']([^"']+)["']/;
+            const imageMatch = cleanBody.match(imageRegex);
+            const firstImage = imageMatch ? (imageMatch[1] || imageMatch[2]) : '';
 
             // 生成描述（取正文前150个字符，去除 Markdown/占位词/图片）
             let description = '';
@@ -92,7 +96,7 @@ jobs:
                 .replace(/<img[^>]*>/g, '') // 秮除 HTML 图片
                 .replace(/#{1,6}\s/g, '') // 移除标题标记
                 .replace(/[*_~`]/g, '') // 移除格式化标记
-                .replace(/\b(摘要|博文正文|内容|Content|Post|封面图)\b[:：]?/gi, '') // 移除中文/英文占位词
+                .replace(/\b(摘要|博文正文|内容|Content|Post)\b[:：]?/gi, '') // 移除中文/英文占位词
                 .replace(/\n+/g, ' ') // 将多个换行替换为空格
                 .trim();
               description = sanitizedDescription.slice(0, 150);
@@ -104,7 +108,7 @@ jobs:
               'layout: post',
               `title: "${issue.title.replace(/"/g, '\\"')}"`,
               `description: "${description.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`,
-              coverImage ? `image: "${coverImage.replace(/"/g, '\\"')}"` : '',
+              firstImage ? `image: "${firstImage}"` : '',
               `date: ${issue.created_at}`,
               `updated: ${issue.updated_at}`,
               `issue: ${issue.number}`,
